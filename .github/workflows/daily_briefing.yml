@@ -1,0 +1,42 @@
+name: Daily Finance Briefing
+
+on:
+  schedule:
+    - cron: '0 22 * * *' # UTC 22:00 = 한국 시간 오전 07:00
+  workflow_dispatch: # 수동 실행 버튼
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install google-generativeai requests pypdf
+
+      - name: Run Report Generator
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_SEARCH_API_KEY: ${{ secrets.GOOGLE_SEARCH_API_KEY }}
+          SEARCH_ENGINE_ID: ${{ secrets.SEARCH_ENGINE_ID }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PWD: ${{ secrets.GMAIL_APP_PWD }}
+        run: python report_generator.py
+
+      - name: Commit and Push Report
+        run: |
+          git config --global user.name 'Seunggyu-AI-Bot'
+          git config --global user.email 'bot@noreply.github.com'
+          git add data/daily_report.md
+          git commit -m "Update daily report [skip ci]" || echo "No changes to commit"
+          git push
