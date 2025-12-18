@@ -65,13 +65,13 @@ with col2:
     st.info("💡 **이 사이트 활용법**")
     st.markdown("""
     1. **좌측 사이드바**에서 메뉴를 선택하세요.
-    2. **Market Simulation**: 환율/주가 상관관계 및 몬테카를로 시뮬레이션
+    2. **MonteCarlo**: 환율/주가 상관관계 및 몬테카를로 시뮬레이션
     3. **Stock Scoring**: 기술적 지표 기반 매수 강도 채점
     """)
     
     st.success("📩 **뉴스레터 구독**")
     
-    # [기능 추가] 구독 로직 구현
+    #구독 로직 구현
     with st.form(key='sub_form'):
         user_email = st.text_input("이메일을 입력하고 매일 아침 리포트를 받아보세요", placeholder="example@email.com")
         submit_btn = st.form_submit_button("구독 신청")
