@@ -68,7 +68,7 @@ def search_pdf_reports(keyword, sites):
         'cx': SEARCH_ENGINE_ID,
         'q': final_query,
         'num': 5, # 검색 개수 조절
-        'dateRestrict': 'm1' # 최근 1개월
+        'dateRestrict': 'w1' # 최근 1개월
     }
     try:
         response = requests.get(url, params=params).json()
@@ -249,7 +249,7 @@ if __name__ == "__main__":
 3. 큰 그림: 개별 사건들을 연결하여 거시적 인사이트를 제공하십시오.
 
 [출력 형식 (Markdown)]
-# 🌍 f"Global Market Synthesis Report ({get_kst_now().strftime('%Y-%m-%d')})"
+# 🌍 Global Market Synthesis Report ({get_kst_now().strftime('%Y-%m-%d')})
 
 ## 1. Executive Summary
 * (핵심 메시지 한 문장)
