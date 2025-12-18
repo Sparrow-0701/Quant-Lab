@@ -41,10 +41,28 @@ else:
     print("❌ 경고: GEMINI_API_KEY가 없습니다.")
 
 TARGET_SITES = [
-    "blackrock.com", "macquarie.com", "kkr.com", 
-    "goldmansachs.com", "jpmorgan.com", "morganstanley.com", 
-    "mckinsey.com", "pwc.com", 
-    "worldbank.org", "adb.org"
+    # 1. 글로벌 자산운용사 (인프라/PE 특화)
+    "blackrock.com",    
+    "macquarie.com",     
+    "kkr.com",         
+    "brookfield.com",    
+    
+    # 2. 글로벌 투자은행 (IB - Market Outlook)
+    "goldmansachs.com", 
+    "jpmorgan.com", 
+    "morganstanley.com",
+    "ubs.com",          
+    
+    # 3. 컨설팅 및 리서치 (산업 트렌드)
+    "mckinsey.com", 
+    "pwc.com",
+    "bain.com",         
+    "deloitte.com",    
+    
+    # 4. 국제기구 (거시경제/정책)
+    "worldbank.org", 
+    "adb.org",           
+    "imf.org"            
 ]
 
 SEARCH_KEYWORD = "Infrastructure Outlook"
