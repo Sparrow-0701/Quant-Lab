@@ -86,3 +86,6 @@ with col2:
                     st.balloons() # 성공 축하 효과
                     st.success(f"환영합니다! '{user_email}'로 구독 신청되었습니다.")
                     st.caption("ℹ️ 확인 후 리포트 발송 리스트에 추가할 예정입니다.")
+
+st.divider()
+st.caption("⚠️ **Disclaimer**: 본 서비스는 모의 투자 및 연구 목적으로 제작되었으며, 실제 투자에 대한 법적 책임을 지지 않습니다. 모든 데이터는 실시간이 아닐 수 있습니다.")
