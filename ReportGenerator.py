@@ -145,13 +145,23 @@ def generate_with_rotation(prompt):
 
 # [추가됨] 웹사이트용 마크다운 저장 함수
 def save_to_markdown(content):
-    # data 폴더가 없으면 생성
-    if not os.path.exists('data'):
-        os.makedirs('data')
+    # 1. 폴더 생성 (data 폴더와 그 안에 archive 폴더까지)
+    if not os.path.exists('data/archive'):
+        os.makedirs('data/archive')
         
+    # [저장 1] 메인 화면용 (항상 덮어씌움 -> 최신 유지)
     with open("data/daily_report.md", "w", encoding="utf-8") as f:
         f.write(content)
-    print("✅ 웹사이트용 리포트 파일 저장 완료 (data/daily_report.md)")
+        
+    # [저장 2] 기록 보관용 (날짜가 이름에 들어감 -> 안 지워짐)
+    # 파일명 예시: data/archive/2025-12-19_report.md
+    today_str = get_kst_now().strftime('%Y-%m-%d')
+    archive_path = f"data/archive/{today_str}_report.md"
+    
+    with open(archive_path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+    print(f"✅ 저장 완료: daily_report.md 및 {today_str}_report.md")
 
 def send_email(subject, body):
     if not GMAIL_USER or not GMAIL_APP_PWD: 
