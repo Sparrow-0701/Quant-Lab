@@ -245,18 +245,27 @@ if __name__ == "__main__":
             else:
                 pass
 
+        # (위쪽 코드는 동일...)
         if collected_insights:
             print(f"\n🎉 총 {success_count}건 성공! 종합 분석 중...")
             
-            # --- [핵심] 최종 종합 리포트 생성 ---
+            # 1. 개별 요약본들을 하나의 문자열로 합치기
+            all_summaries_text = "\n\n---\n".join(collected_insights)
+            
+            # --- [핵심] 최종 종합 리포트 생성 프롬프트 ---
+            # (프롬프트에는 요약본을 보여주기만 하고, 출력 포맷에는 포함하지 않음)
             final_prompt = f"""
 당신은 수석 애널리스트입니다. 
-아래 {success_count}개의 개별 리포트 요약본들을 통합 분석하여 최종 결론을 도출하십시오. 또한 모든 대답은 한국어로 작성하십시오.
+아래 제공된 {success_count}개의 [개별 리포트 요약본]을 바탕으로 최종 결론을 도출하십시오.
+모든 답변은 한국어로 작성하십시오.
 
 [분석 지침]
 1. 상호 검증: 여러 보고서의 공통된 합의(Consensus)를 찾으십시오.
 2. 이견: 전망이 엇갈리는 부분은 리스크로 명시하십시오.
 3. 큰 그림: 개별 사건들을 연결하여 거시적 인사이트를 제공하십시오.
+
+[개별 리포트 요약본 데이터]:
+{all_summaries_text}
 
 [출력 형식 (Markdown)]
 # 🌍 Global Market Synthesis Report ({get_kst_now().strftime('%Y-%m-%d')})
@@ -272,21 +281,15 @@ if __name__ == "__main__":
 
 ## 4. Risk Assessment
 * (하방 위험 요인)
-
----
-## 📚 Individual Report Summaries
-(아래 내용은 개별 리포트의 요약입니다)
-
-{"".join(collected_insights)}
 """
+            # 2. AI에게 종합 분석(1~4번)만 시킴
             final_insight, final_model = generate_with_rotation(final_prompt)
             
-            final_report_content = final_insight # 웹사이트 및 메일 본문용
+            # 3. AI의 '종합 분석' 뒤에 개별 리포트 요약을 수동으로 붙임
+            final_report_content = f"{final_insight}\n\n---\n## 📚 Individual Report Summaries\n(아래 내용은 개별 리포트의 요약입니다)\n\n{all_summaries_text}"
 
-            # 1. 웹사이트용 파일 저장
+            # 4. 저장 및 전송
             save_to_markdown(final_report_content)
-
-            # 2. 이메일 전송
             send_email(f"[Quant-Lab] {SEARCH_KEYWORD} 종합 리포트", final_report_content)
             
             print("\n✅ 모든 작업 완료!")
