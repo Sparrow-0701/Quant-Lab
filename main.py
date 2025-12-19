@@ -108,3 +108,5 @@ with st.sidebar:
     )
     
     st.caption("서버 비용과 개발에 큰 힘이 됩니다!")
+    
+    st.caption("문의사항: ksmsk0701@gmail.com")
