@@ -7,6 +7,7 @@ st.set_page_config(
     page_title="Quant Lab",
     page_icon="💸",
     layout="wide"
+    
 )
 
 # ---------------------------------------------------------
@@ -59,14 +60,14 @@ with col1:
             report_content = f.read()
         st.markdown(report_content)
     else:
-        st.info("아직 오늘의 리포트가 생성되지 않았습니다. (매일 아침 7시 업데이트)")
+        st.info("아직 오늘의 리포트가 생성되지 않았습니다. (매일 아침 8시 업데이트)")
 
 with col2:
-    st.info("💡 **이 사이트 활용법**")
+    st.info("💡 이 사이트 활용법")
     st.markdown("""
-    1. **좌측 사이드바**에서 메뉴를 선택하세요.
-    2. **MonteCarlo**: 환율/주가 상관관계 및 몬테카를로 시뮬레이션
-    3. **Stock Scoring**: 기술적 지표 기반 매수 강도 채점
+    1. 좌측 사이드바에서 메뉴를 선택하세요.
+    2. MonteCarlo: 환율/주가 상관관계 및 몬테카를로 시뮬레이션
+    3. Stock Scoring: 기술적 지표 기반 매수 강도 채점
     """)
     
     st.success("📩 **뉴스레터 구독**")
@@ -89,3 +90,21 @@ with col2:
 
 st.divider()
 st.caption("⚠️ **Disclaimer**: 본 서비스는 모의 투자 및 연구 목적으로 제작되었으며, 실제 투자에 대한 법적 책임을 지지 않습니다. 모든 데이터는 실시간이 아닐 수 있습니다.")
+
+with st.sidebar:
+    st.markdown("---") # 구분선
+    st.caption("☕ **개발자에게 커피 한 잔 쏘기**")
+    
+    buymeacoffee_url = "https://www.buymeacoffee.com/revoltac"
+    
+    st.markdown(
+        f"""
+        <div style="text-align:center;">
+            <a href="{buymeacoffee_url}" target="_blank">
+                <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 50px !important;width: 200px !important;" >
+            </a>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    st.caption("서버 비용과 개발에 큰 힘이 됩니다! 🚀")
