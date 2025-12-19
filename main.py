@@ -2,6 +2,36 @@ import streamlit as st
 import os
 import smtplib
 from email.mime.text import MIMEText
+import streamlit.components.v1 as components
+
+def copy_button(text_to_copy, button_text="📋 계좌번호 복사하기"):
+    html_code = f"""
+    <script>
+    function copyToClipboard() {{
+        navigator.clipboard.writeText("{text_to_copy}").then(function() {{
+            alert("계좌번호가 복사되었습니다!");
+        }}, function(err) {{
+            console.error('복사 실패: ', err);
+        }});
+    }}
+    </script>
+    <div style="text-align: center; margin-top: 10px;">
+        <button onclick="copyToClipboard()" style="
+            background-color: #f0f2f6; 
+            border: 1px solid #d0d7de; 
+            border-radius: 8px; 
+            color: #24292f; 
+            padding: 8px 16px; 
+            font-size: 14px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            box-shadow: 0 1px 0 rgba(27,31,36,0.04);
+            transition: 0.2s;">
+            {button_text}
+        </button>
+    </div>
+    """
+    components.html(html_code, height=60)
 
 st.set_page_config(
     page_title="Quant Lab",
@@ -106,5 +136,8 @@ with st.sidebar:
         unsafe_allow_html=True
     )
     st.caption("👇 토스/은행 계좌 복사 (클릭)")
-    st.code("국민은행 93930201202028", language="text")
+    MY_ACCOUNT = "국민은행 93930201202028"
+    
+    copy_button(MY_ACCOUNT, "📋 계좌번호 복사하기")
+    
     st.caption("서버 비용과 개발에 큰 힘이 됩니다!")
