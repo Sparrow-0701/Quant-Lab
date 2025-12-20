@@ -48,27 +48,47 @@ def send_subscription_alert(new_email):
     
 def unsubscribe_user(email):
     try:
+        # 1. 인증 및 연결
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
         creds_dict = st.secrets["gcp_service_account"] 
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
 
-        sheet = client.open("QuantLab Subscribers").sheet1
+        # 파일명 확인
+        sheet = client.open("QuantLab_Subscribers").sheet1
         
-        cell = sheet.find(email)
+        # 2. 모든 데이터 가져오기
+        rows = sheet.get_all_values()
         
-        if cell:
-            # [수정] 한국 시간(KST) 구하기
+        target_row_index = None
+        
+        # 3. 반복문을 돌며 진짜 취소해야 할 행 찾기
+        # (헤더가 있으므로 인덱스 1부터 시작)
+        for i in range(1, len(rows)):
+            row = rows[i]
+            
+            # 데이터 가져오기 (인덱스 에러 방지)
+            r_email = row[0].strip() if len(row) > 0 else ""
+            r_cancel_time = row[4].strip() if len(row) > 4 else "" # E열 값
+            
+            # [핵심 조건] 이메일이 같고 + "취소 날짜가 비어 있어야" 함
+            if r_email == email and r_cancel_time == "":
+                target_row_index = i + 1 # 리스트 인덱스(0부터) -> 엑셀 행 번호(1부터)로 변환
+                break # 찾았으면 중단
+        
+        # 4. 결과 처리
+        if target_row_index:
+            # 한국 시간 구하기
             kst = timezone(timedelta(hours=9))
             cancel_time = datetime.now(kst).strftime("%Y-%m-%d %H:%M:%S")
             
-            sheet.update_cell(cell.row, 5, cancel_time) 
+            # 정확히 찾은 그 줄의 5번째 칸만 업데이트
+            sheet.update_cell(target_row_index, 5, cancel_time) 
             return "success"
         else:
+            # 이메일은 있어도 이미 다 취소된 상태라면 'not_found' 취급
             return "not_found"
             
-    except gspread.exceptions.CellNotFound:
-        return "not_found"
     except Exception as e:
         st.error(f"구독 취소 오류: {e}")
         return "error"
