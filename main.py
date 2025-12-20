@@ -20,9 +20,10 @@ st.markdown("""
     @media (min-width: 992px) {
         div[data-testid="stColumn"]:nth-of-type(2) {
             position: sticky;
-            top: 2rem; 
-            height: fit-content; 
-            z-index: 1000; 
+            top: 6rem; 
+            =
+            z-index: 1000;
+            height: fit-content;
         }
     }
     </style>
