@@ -15,6 +15,19 @@ st.set_page_config(
     
 )
 
+st.markdown("""
+    <style>
+    @media (min-width: 992px) {
+        div[data-testid="stColumn"]:nth-of-type(2) {
+            position: sticky;
+            top: 2rem; 
+            height: fit-content; 
+            z-index: 1000; 
+        }
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # ---------------------------------------------------------
 # 구독자 알림 메일 보내는 함수
 # ---------------------------------------------------------
@@ -152,8 +165,6 @@ def save_to_google_sheet(email):
         return "error"
     
 # ---------------------------------------------------------
-
-
 
 
 st.title("💸 AI 퀀트 투자 연구소")
