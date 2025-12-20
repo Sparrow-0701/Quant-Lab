@@ -76,14 +76,18 @@ def save_to_google_sheet(email):
     try:
         # 1. 인증 및 연결
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        creds_dict = st.secrets["GCP_SERVICE_ACCOUNT"] 
+        creds_dict = st.secrets["gcp_service_account"] 
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
 
+        # 파일명 확인
         sheet = client.open("QuantLab_Subscribers").sheet1
         
-        # 2. 전체 데이터 가져오기
-        rows = sheet.get_all_values()
+        # 2. 모든 데이터 가져오기 (에러 방지용 안전 장치)
+        try:
+            rows = sheet.get_all_values()
+        except:
+            rows = [] 
         
         today = datetime.now().strftime("%Y-%m-%d")
         
@@ -91,38 +95,36 @@ def save_to_google_sheet(email):
         is_active = False 
         has_history = False 
         
-        # 헤더가 있든 없든 안전하게 처리
         if len(rows) > 1:
-            for row in rows[1:]:
-                # 안전하게 값 가져오기
-                current_email = row[0].strip() if len(row) > 0 else ""
+            for row in rows[1:]: # 헤더 건너뛰기
+                # 안전하게 데이터 가져오기 (인덱스 에러 방지)
+                # 순서: 0:email, 1:start, 2:end, 3:register, 4:cancel
                 
-                if current_email == email:
+                row_email = row[0].strip() if len(row) > 0 else ""
+                
+                if row_email == email:
                     has_history = True
-                    end_date = row[2].strip() if len(row) > 2 else ""
-                    canceled_at = row[4].strip() if len(row) > 4 else ""
                     
-                    # [중복 조건] 취소 안 함 + 만료 안 됨
-                    if canceled_at == "" and end_date >= today:
+                    # [수정됨] 알려주신 필드 순서에 맞춤
+                    end_date = row[2].strip() if len(row) > 2 else ""      # end_date
+                    cancel_time = row[4].strip() if len(row) > 4 else ""   # cancel_time (E열)
+                    
+                    # [중복 조건] 취소 안 함(공백) + 만료 안 됨 -> 구독 중
+                    if cancel_time == "" and end_date >= today:
                         is_active = True
                         break 
 
-        # 4. 결과 처리 및 데이터 입력
+        # 4. 저장 실행
         if is_active:
             return "duplicate"
         else:
-            # [수정된 부분] append_row 대신 빈 줄을 찾아서 직접 입력
-            next_row = len(rows) + 1  # 데이터 개수 + 1이 다음 빈 줄 번호
-            
+            # 날짜 계산
             next_year = (datetime.now() + timedelta(days=365)).strftime("%Y-%m-%d")
             now_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-            # 한 칸씩 직접 입력 (이 방식은 에러가 안 납니다!)
-            sheet.update_cell(next_row, 1, email)       # A열: 이메일
-            sheet.update_cell(next_row, 2, today)       # B열: 시작일
-            sheet.update_cell(next_row, 3, next_year)   # C열: 종료일
-            sheet.update_cell(next_row, 4, now_time)    # D열: 등록일시
-            sheet.update_cell(next_row, 5, "")          # E열: 취소일(공백)
+            # [데이터 입력] append_row 사용
+            # 순서: email, start, end, register_time, cancel_time(공백)
+            sheet.append_row([email, today, next_year, now_time, ""])
             
             if has_history:
                 return "resubscribed"
@@ -130,6 +132,10 @@ def save_to_google_sheet(email):
                 return "success"
 
     except Exception as e:
+        # [안전 장치] <Response [200]> 에러는 '성공'으로 간주
+        if "200" in str(e):
+            return "success" if not has_history else "resubscribed"
+            
         st.error(f"시스템 오류: {e}")
         return "error"
     

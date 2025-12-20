@@ -7,5 +7,5 @@ requests
 google-generativeai
 pypdf
 pandas_ta
-gspread
+gspread>=6.0.0
 oauth2client
