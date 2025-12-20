@@ -55,7 +55,7 @@ def unsubscribe_user(email):
         client = gspread.authorize(creds)
 
         # 파일명 확인
-        sheet = client.open("QuantLab_Subscribers").sheet1
+        sheet = client.open("QuantLab Subscribers").sheet1
         
         # 2. 모든 데이터 가져오기
         rows = sheet.get_all_values()
