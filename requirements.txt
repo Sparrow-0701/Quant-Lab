@@ -7,3 +7,5 @@ requests
 google-generativeai
 pypdf
 pandas_ta
+gspread
+oauth2client
