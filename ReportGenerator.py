@@ -42,7 +42,7 @@ def get_active_subscribers():
         client = gspread.authorize(creds)
 
         # 파일명 정확히 입력
-        sheet = client.open("QuantLab_Subscribers").sheet1
+        sheet = client.open("QuantLab Subscribers").sheet1
         data = sheet.get_all_records()
         
         active_emails = []
@@ -75,17 +75,22 @@ def get_active_subscribers():
 # -----------------------------------------------------------
 # 수신자 목록 통합 (환경변수 + 구글시트)
 # -----------------------------------------------------------
-# 1. 환경변수에 등록된 관리자 이메일 (테스트용)
+# 1. 환경변수(관리자) 이메일 처리
 env_emails = os.environ.get("RECEIVER_EMAILS", "")
-admin_list = [e.strip() for e in env_emails.split(",") if e.strip()]
+admin_list = [e.strip().lower() for e in env_emails.split(",") if e.strip()]
 
-# 2. 구글 시트에서 가져온 구독자 이메일
-subscriber_list = get_active_subscribers()
+# 2. 구글 시트 구독자 이메일 처리
+raw_subscribers = get_active_subscribers()
+subscriber_list = [e.strip().lower() for e in raw_subscribers if e and e.strip()]
 
-# 3. 중복 제거 및 최종 리스트 생성
-RECEIVER_EMAILS = list(set(admin_list + subscriber_list))
+# 3. 합치기 및 중복 제거
+unique_emails = set(admin_list + subscriber_list)
 
-print(f"📩 최종 발송 대상: {len(RECEIVER_EMAILS)}명")
+# 4. 최종 리스트 변환
+RECEIVER_EMAILS = list(unique_emails)
+
+print(f"📩 최종 발송 대상(중복 제거됨): {len(RECEIVER_EMAILS)}명")
+# 디버깅용: 실제 리스트 확인 (로그에는 남지만 보안상 주의)
 
 AVAILABLE_MODELS = [
     "models/gemini-2.5-flash",
