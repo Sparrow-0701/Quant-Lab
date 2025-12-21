@@ -22,7 +22,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install google-generativeai requests pypdf pandas numpy gspread
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Run Report Generator
         env:
@@ -56,23 +57,3 @@ jobs:
           git add data/
           git commit -m "Update Daily Data (Report + Exchange Rate)" || echo "No changes to commit"
           git push
-
-      - name: 🚨 Send Failure Alert to Admin
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.GMAIL_USER }}
-          password: ${{ secrets.GMAIL_APP_PWD }}
-          
-          subject: "⚠️ [QuantLab Error] 리포트 생성 실패 (확인 요망)"
-          body: |
-            Github Actions 실행 중 에러가 발생했습니다.
-            로그를 확인해서 문제를 해결해주세요.
-            
-            Repository: ${{ github.repository }}
-            Workflow: ${{ github.workflow }}
-          
-          to: ksmsk0701@gmail.com 
-          from: QuantLab Bot
