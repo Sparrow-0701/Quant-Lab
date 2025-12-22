@@ -1,0 +1,36 @@
+name: Daily Report Job
+
+on:
+  schedule:
+    # 한국 시간 아침 8시 = UTC 23시 (전날)
+    - cron: '0 23 * * *'
+  workflow_dispatch: # 수동 실행 버튼 추가
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v3
+
+      - name: 파이썬 설치
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: 라이브러리 설치
+        run: |
+          pip install streamlit supabase google-generativeai requests pypdf toml
+
+      - name: 스크립트 실행
+        env:
+          # GitHub Secrets에 등록된 키들을 환경변수로 주입
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_SEARCH_API_KEY: ${{ secrets.GOOGLE_SEARCH_API_KEY }}
+          SEARCH_ENGINE_ID: ${{ secrets.SEARCH_ENGINE_ID }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PWD: ${{ secrets.GMAIL_APP_PWD }}
+        run: python daily_job.py
