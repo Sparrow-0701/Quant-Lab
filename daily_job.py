@@ -107,7 +107,7 @@ def search_pdf_reports(keyword, sites):
         'key': GOOGLE_SEARCH_API_KEY,
         'cx': SEARCH_ENGINE_ID,
         'q': final_query,
-        'num': 5, # 상위 5개만 분석
+        'num': 10, # 상위 5개만 분석
         'dateRestrict': 'w1' # 최근 1주일
     }
     try:
@@ -135,7 +135,7 @@ def extract_text_fast(url):
 
 def generate_synthesis(summaries_text, lang='ko'):
     """여러 요약본을 하나로 종합 (언어 선택 가능)"""
-    model = genai.GenerativeModel('gemini-2.0-flash') # 최신 모델 사용 권장
+    model = genai.GenerativeModel('gemini-2.5-flash') # 최신 모델 사용 권장
     
     today = datetime.now().strftime('%Y-%m-%d')
     
