@@ -146,7 +146,7 @@ with col1:
     selected_lang_code = 'ko' if "한국어" in lang_option else 'en'
     
     try:
-        db_response = supabase.table("daily_reports").select("*").order("id", desc=True).limit(1).execute()
+        db_response = supabase.table("daily_reports").select("*").order("created_at", desc=True).limit(1).execute()
         
         if db_response.data:
             latest_report = db_response.data[0]

@@ -2,32 +2,30 @@ name: QuantLab Daily Bot 🤖
 
 on:
   schedule:
-    # 매일 한국 시간 아침 8시 (UTC 23:00)
+    # UTC 23:00 = 한국 시간 08:00
     - cron: '0 23 * * *'
-  
   workflow_dispatch:
 
 jobs:
-  build:
+  run-daily-job:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 코드 가져오기 (Checkout)
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: 파이썬 설치
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: '3.12'
 
-    - name: 라이브러리 설치
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: 봇 실행 (Run Daily Job)
+    - name: Run Daily Job
       env:
-        # GitHub Secrets에서 열쇠 꺼내와서 환경변수로 주입
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

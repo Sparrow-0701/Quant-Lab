@@ -304,7 +304,6 @@ if __name__ == "__main__":
         korean_users = get_subscribers_from_db('ko')
         if korean_users:
             body_ko = build_mail_body(final_ko, structured_summaries, 'ko')
-            # [수정] 메일 제목 날짜도 KST 적용
             send_email_batch(f"[QuantLab] 오늘의 글로벌 마켓 브리핑 ({today_kst_md})", body_ko, korean_users)
 
         english_users = get_subscribers_from_db('en')
