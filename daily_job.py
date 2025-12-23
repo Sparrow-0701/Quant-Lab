@@ -19,7 +19,7 @@ from supabase import create_client
 try:
     # 1. 로컬 개발 환경 (.streamlit/secrets.toml)
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    secrets_path = "C:/Y/Study/Projects/StockAnalysis/.streamlit/secrets.toml"
+    secrets_path = os.path.join(current_dir, ".streamlit", "secrets.toml")
     
     if os.path.exists(secrets_path):
         secrets = toml.load(secrets_path)
@@ -107,7 +107,7 @@ def search_pdf_reports(keyword, sites):
         'key': GOOGLE_SEARCH_API_KEY,
         'cx': SEARCH_ENGINE_ID,
         'q': final_query,
-        'num': 10, # 상위 5개만 분석
+        'num': 10,
         'dateRestrict': 'w1' # 최근 1주일
     }
     try:
@@ -134,38 +134,63 @@ def extract_text_fast(url):
         return None
 
 def generate_synthesis(summaries_text, lang='ko'):
-    """여러 요약본을 하나로 종합 (언어 선택 가능)"""
-    model = genai.GenerativeModel('gemini-2.5-flash') # 최신 모델 사용 권장
+    """여러 요약본을 하나로 종합 (전문가 페르소나 적용)"""
+    # 모델은 최신 버전 권장 (안정성을 위해 1.5 flash 사용 가능)
+    model = genai.GenerativeModel('gemini-1.5-flash') 
     
     today = datetime.now().strftime('%Y-%m-%d')
     
     if lang == 'en':
         prompt = f"""
-        You are a Chief Market Strategist. 
-        Synthesize the following individual report summaries into a comprehensive "Global Market Daily Brief".
+        Role: You are a Chief Market Strategist at a top-tier global investment bank.
+        Task: Synthesize the following individual report summaries into a professional "Global Market Daily Brief".
         
-        [Input Data]:
+        [Input Summaries]:
         {summaries_text}
         
-        [Output Format (Markdown)]:
+        [Constraints]:
+        1. Tone: Professional, analytical, and objective.
+        2. Content: Focus on actionable investment insights, macro trends, and specific sectors mentioned.
+        3. Structure: Use the Markdown format below strictly.
+        
+        [Output Format]:
         # 🌍 Global Market Synthesis ({today})
-        ## 1. Executive Summary (1 sentence)
-        ## 2. Key Trends
-        ## 3. Risk Factors
+        
+        ## 🎯 Executive Summary
+        (One clear sentence summarizing the most important market signal today.)
+        
+        ## 📈 Key Investment Trends
+        * (Trend 1): (Detail with specific sectors/assets)
+        * (Trend 2): (Detail with specific sectors/assets)
+        
+        ## ⚠️ Risk Factors
+        (Briefly mention potential risks like inflation, geopolitical issues, etc.)
         """
     else:
         prompt = f"""
-        당신은 수석 애널리스트입니다.
-        아래 개별 리포트 요약본들을 종합하여 하나의 '글로벌 마켓 데일리 브리핑'을 작성하십시오.
+        역할: 당신은 글로벌 투자 은행의 수석 시장 전략가(Chief Market Strategist)입니다.
+        임무: 아래 제공된 개별 리포트 요약본들을 종합하여, 투자자들을 위한 전문적인 '글로벌 마켓 데일리 브리핑'을 작성하십시오.
         
         [입력 데이터]:
         {summaries_text}
         
-        [출력 양식 (Markdown)]:
+        [제약 사항]:
+        1. 어조: 전문적이고 분석적이며 객관적인 태도를 유지하십시오.
+        2. 내용: 단순한 사실 나열보다 '투자 인사이트', '유망 섹터', '구체적인 수치'에 집중하십시오.
+        3. 형식: 아래 마크다운 양식을 엄격히 따르십시오.
+        
+        [출력 양식]:
         # 🌍 글로벌 마켓 종합 리포트 ({today})
-        ## 1. 핵심 요약 (한 줄)
-        ## 2. 주요 트렌드
-        ## 3. 리스크 요인
+        
+        ## 🎯 핵심 요약 (Executive Summary)
+        (오늘 시장을 관통하는 가장 중요한 신호를 한 문장으로 요약)
+        
+        ## 📈 주요 투자 트렌드
+        * (트렌드 1): (관련 섹터나 자산군을 포함하여 구체적으로 설명)
+        * (트렌드 2): (관련 섹터나 자산군을 포함하여 구체적으로 설명)
+        
+        ## ⚠️ 리스크 요인
+        (인플레이션, 지정학적 이슈 등 잠재적 위험 요소 언급)
         """
         
     try:
@@ -175,15 +200,13 @@ def generate_synthesis(summaries_text, lang='ko'):
         return f"분석 실패: {e}"
 
 def send_email_batch(subject, body, receivers):
-    """이메일 발송"""
     if not receivers: return
     
     msg = MIMEMultipart()
     msg['From'] = GMAIL_USER
     msg['Subject'] = subject
-    # 숨은 참조(BCC)로 보냄 (개인정보 보호)
     msg['Bcc'] = ", ".join(receivers) 
-    msg.attach(MIMEText(body, 'plain')) # 또는 'html'로 변경 가능
+    msg.attach(MIMEText(body, 'plain')) # 텍스트 모드
 
     try:
         server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -201,48 +224,136 @@ def send_email_batch(subject, body, receivers):
 if __name__ == "__main__":
     print("🚀 QuantLab Daily Job 시작...")
     
-    # 1. 리포트 검색
-    reports = search_pdf_reports(SEARCH_KEYWORD, TARGET_SITES)
+    # 1. 리포트 검색 (테스트 데이터)
+    reports = [
+        {'title': 'Goldman Sachs 2025 Outlook', 'link': 'https://test.com/gs'},
+        {'title': 'BlackRock Investment Trends', 'link': 'https://test.com/br'}
+    ]
     
-    collected_summaries = []
+    structured_summaries = [] 
+    model = genai.GenerativeModel('gemini-1.5-flash')
     
-    # 2. 개별 리포트 요약 (중간 단계)
-    model = genai.GenerativeModel('gemini-2.0-flash')
-    
+    # 2. 개별 리포트 요약 (KO / EN)
     for report in reports:
         print(f"Processing: {report['title']}...")
-        text = extract_text_fast(report['link'])
+        
+        # 텍스트 추출 (테스트용)
+        text = f"The market is showing strong signals in AI and Infrastructure sectors. Investors should focus on data centers and renewable energy. Projected growth is 15% YoY. ({report['title']})"
+        
         if text:
-            # 개별 요약은 토큰 절약을 위해 짧게 수행
-            res = model.generate_content(f"Summarize this financial report in 3 bullets:\n{text[:10000]}")
-            collected_summaries.append(f"Title: {report['title']}\nLink: {report['link']}\nSummary: {res.text}")
+            try:
+                # ==================================================
+                # [개선됨] 한국어 개별 요약 프롬프트
+                # ==================================================
+                prompt_ko = f"""
+                당신은 시니어 퀀트 애널리스트입니다. 다음 금융 텍스트를 분석하여 투자자에게 가장 중요한 정보를 3가지 포인트로 요약하십시오.
+                
+                [텍스트]:
+                {text[:15000]}
+                
+                [요약 규칙]:
+                1. 추상적인 표현을 피하고, 가능한 한 **수치(%, $)**와 **구체적 종목/섹터명**을 포함하십시오.
+                2. 문장은 간결하고 명확하게 끝맺으십시오.
+                3. 한국어로 작성하십시오.
+                
+                [출력 형식]:
+                * **(핵심 주제)**: (구체적인 내용과 전망)
+                * **(주목할 섹터)**: (관련 자산 및 수치)
+                * **(결론/제언)**: (투자자가 취해야 할 행동)
+                """
+                res_ko = model.generate_content(prompt_ko)
+                
+                # ==================================================
+                # [개선됨] 영어 개별 요약 프롬프트
+                # ==================================================
+                prompt_en = f"""
+                You are a Senior Quantitative Analyst. Analyze the following financial text and summarize the most critical information for investors into 3 bullet points.
+                
+                [Text]:
+                {text[:15000]}
+                
+                [Rules]:
+                1. Avoid abstract language; include **numbers (%, $)** and **specific tickers/sectors** whenever possible.
+                2. Keep sentences concise and actionable.
+                3. Write in English.
+                
+                [Output Format]:
+                * **(Key Theme)**: (Details with outlook)
+                * **(Sector Focus)**: (Assets and metrics)
+                * **(Actionable Insight)**: (What investors should consider)
+                """
+                res_en = model.generate_content(prompt_en)
+                
+                # [Step 3] DB에 저장
+                supabase.table("individual_reports").insert({
+                    "title": report['title'],
+                    "link": report['link'],
+                    "summary_ko": res_ko.text,
+                    "summary_en": res_en.text
+                }).execute()
+                
+                # 리스트에 담기
+                structured_summaries.append({
+                    "title": report['title'],
+                    "link": report['link'],
+                    "summary_ko": res_ko.text,
+                    "summary_en": res_en.text
+                })
+                
+                time.sleep(2) 
+                
+            except Exception as e:
+                print(f"Error processing {report['title']}: {e}")
 
-    if collected_summaries:
-        all_text = "\n\n".join(collected_summaries)
+    if structured_summaries:
+        all_text_en = "\n\n".join([f"Title: {s['title']}\nSummary: {s['summary_en']}" for s in structured_summaries])
         
-        # 3. [핵심] 한국어 & 영어 종합 리포트 생성
-        final_ko = generate_synthesis(all_text, 'ko')
-        final_en = generate_synthesis(all_text, 'en')
+        print("🤖 종합 리포트 생성 중...")
+        final_ko = generate_synthesis(all_text_en, 'ko')
+        final_en = generate_synthesis(all_text_en, 'en')
         
-        # 4. DB에 저장 (오늘의 리포트)
+        # DB 저장 (종합)
         db_data = {
             "title": f"Global Market Synthesis ({datetime.now().strftime('%Y-%m-%d')})",
-            "link": "Combined Sources", # 또는 첫 번째 링크
+            "link": "Combined Sources",
             "summary_ko": final_ko,
             "summary_en": final_en
         }
         supabase.table("daily_reports").insert(db_data).execute()
-        print("💾 DB 저장 완료!")
+        print("💾 종합 리포트 DB 저장 완료!")
+
         
-        # 5. 이메일 발송 (언어별 분리 발송)
-        korean_users = get_subscribers_from_db('ko')
-        english_users = get_subscribers_from_db('en')
-        
-        if korean_users:
-            send_email_batch("[QuantLab] 오늘의 글로벌 마켓 브리핑", final_ko, korean_users)
+        # [함수] 메일 본문 조립기
+        def build_mail_body(synthesis, summaries, lang='ko'):
+            body = f"{synthesis}\n\n"
+            body += "=" * 40 + "\n\n"
             
+            if lang == 'ko':
+                body += "📚 [참고한 개별 리포트 원문 요약]\n\n"
+                key = 'summary_ko'
+            else:
+                body += "📚 [Individual Report Summaries]\n\n"
+                key = 'summary_en'
+
+            for item in summaries:
+                body += f"📌 {item['title']}\n"
+                body += f"🔗 {item['link']}\n"
+                body += f"{item[key]}\n"  # 여기서 언어에 맞는 요약을 꺼냄
+                body += "-" * 20 + "\n"
+            
+            return body
+
+        # 1. 한국어 구독자 발송
+        korean_users = get_subscribers_from_db('ko')
+        if korean_users:
+            body_ko = build_mail_body(final_ko, structured_summaries, 'ko')
+            send_email_batch(f"[QuantLab] 오늘의 글로벌 마켓 브리핑 ({datetime.now().strftime('%m/%d')})", body_ko, korean_users)
+
+        # 2. 영어 구독자 발송
+        english_users = get_subscribers_from_db('en')
         if english_users:
-            send_email_batch("[QuantLab] Daily Market Briefing", final_en, english_users)
+            body_en = build_mail_body(final_en, structured_summaries, 'en')
+            send_email_batch(f"[QuantLab] Daily Market Brief ({datetime.now().strftime('%m/%d')})", body_en, english_users)
             
     else:
-        print("💤 오늘은 새로운 리포트가 없습니다.")
+        print("💤 처리된 리포트가 없습니다.")

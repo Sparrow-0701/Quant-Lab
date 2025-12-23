@@ -1,9 +1,8 @@
 import streamlit as st
 import smtplib
 from email.mime.text import MIMEText
-from supabase import create_client, Client
+from supabase import create_client
 from datetime import datetime
-import os
 
 # ---------------------------------------------------------
 # 1. 초기 설정 및 DB 연결
@@ -14,7 +13,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# CSS 스타일 (모바일/PC 반응형 등)
+# CSS 스타일
 st.markdown("""
     <style>
     @media (min-width: 992px) {
@@ -28,7 +27,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Supabase 연결 (캐싱하여 속도 최적화)
+# Supabase 연결
 @st.cache_resource
 def init_supabase():
     url = st.secrets["supabase"]["SUPABASE_URL"]
@@ -42,11 +41,22 @@ except Exception as e:
     st.stop()
 
 # ---------------------------------------------------------
-# 2. 핵심 로직 함수 (DB 기반으로 교체됨)
+# 2. 핵심 로직 함수
 # ---------------------------------------------------------
 
+def log_action(email, action_type):
+    """subscription_logs 테이블에 기록 남기기"""
+    try:
+        supabase.table("subscription_logs").insert({
+            "email": email,
+            "action_type": action_type
+        }).execute()
+        print(f"Log saved: {email} - {action_type}")
+    except Exception as e:
+        print(f"로그 저장 실패: {e}")
+
 def send_subscription_alert(new_email):
-    """관리자에게 메일 발송 (기존 유지)"""
+    """관리자에게 메일 발송"""
     try:
         sender = st.secrets["GMAIL"]["GMAIL_USER"]
         password = st.secrets["GMAIL"]["GMAIL_APP_PWD"]
@@ -63,45 +73,54 @@ def send_subscription_alert(new_email):
             server.send_message(msg)
         return True
     except Exception as e:
-        # 메일 발송 실패해도 DB 저장은 성공했으므로 넘어감
         print(f"메일 발송 에러: {e}")
         return False
 
 def subscribe_user_to_db(email, language='ko'):
-    """구독자 DB에 추가/업데이트"""
     try:
-        # 1. 이미 존재하는지 확인
-        response = supabase.table("subscribers").select("*").eq("email", email).execute()
+        current_date = datetime.now().strftime("%Y-%m-%d")
         
-        if response.data:
-            # 이미 존재하면 상태 확인
-            user = response.data[0]
-            if user['is_active']:
-                return "duplicate" # 이미 구독 중
-            else:
-                # 구독 취소했던 사람이면 다시 True로 변경 (재구독)
-                supabase.table("subscribers").update({"is_active": True, "language": language}).eq("email", email).execute()
-                return "resubscribed"
-        else:
-            # 2. 신규 유저 -> Insert
-            supabase.table("subscribers").insert({"email": email, "language": language}).execute()
-            send_subscription_alert(email) # 알림 메일
-            return "success"
-            
+        # [수정] register_time, cancel_time 삭제
+        # 순수하게 '구독 기간' 정보만 남김
+        data = {
+            "email": email, 
+            "is_active": True, 
+            "language": language,
+            "start_date": current_date, 
+            "end_date": None
+        }
+        
+        # upsert: 있으면 수정(재구독), 없으면 추가
+        supabase.table("subscribers").upsert(data).execute()
+        
+        # 로그 기록 (여기에 정확한 시간이 찍힘)
+        log_action(email, 'SUBSCRIBE')
+        
+        send_subscription_alert(email)
+        return "success"
+
     except Exception as e:
         return f"error: {str(e)}"
 
 def unsubscribe_user_from_db(email):
-    """구독 취소 (DB 상태 변경)"""
     try:
-        # 존재하고 활성화된 유저인지 확인
-        response = supabase.table("subscribers").select("*").eq("email", email).eq("is_active", True).execute()
-        
-        if not response.data:
+        # 1. 존재하는지 확인
+        check = supabase.table("subscribers").select("*").eq("email", email).execute()
+        if not check.data:
             return "not_found"
+
+        # 2. Subscribers 테이블 갱신
+        current_date = datetime.now().strftime("%Y-%m-%d")
+
+        # [수정] cancel_time 삭제
+        supabase.table("subscribers").update({
+            "is_active": False,
+            "end_date": current_date
+        }).eq("email", email).execute()
         
-        # 상태를 False로 변경 (데이터 삭제가 아님!)
-        supabase.table("subscribers").update({"is_active": False}).eq("email", email).execute()
+        # 로그 기록 (여기에 정확한 시간이 찍힘)
+        log_action(email, 'UNSUBSCRIBE')
+        
         return "success"
         
     except Exception as e:
@@ -116,23 +135,19 @@ st.divider()
 
 col1, col2 = st.columns([2, 1])
 
-# [왼쪽] 리포트 영역 (DB에서 가져오기)
+# [왼쪽] 리포트 영역
 with col1:
     st.subheader("📰 오늘의 글로벌 기관 리포트")
     
-    # 언어 선택 기능 추가 (글로벌 서비스 준비!)
     lang_option = st.radio("언어 선택 (Language)", ["🇰🇷 한국어", "🇺🇸 English"], horizontal=True)
     selected_lang_code = 'ko' if "한국어" in lang_option else 'en'
     
-    # DB에서 최신 리포트 1개 가져오기
     try:
-        # id 역순(내림차순)으로 정렬해서 1개만 가져옴 = 가장 최신 글
         db_response = supabase.table("daily_reports").select("*").order("id", desc=True).limit(1).execute()
         
         if db_response.data:
             latest_report = db_response.data[0]
             
-            # 선택한 언어에 따라 다른 요약본 보여주기
             if selected_lang_code == 'ko':
                 summary_text = latest_report.get('summary_ko', '한국어 요약이 없습니다.')
             else:
@@ -159,14 +174,12 @@ with col2:
     
     st.divider()
     
-    # 탭으로 구독/취소 분리
     tab_sub, tab_unsub = st.tabs(["📩 구독 신청", "👋 구독 취소"])
     
     # 1. 구독 신청 탭
     with tab_sub:
         with st.form(key='sub_form'):
             sub_email = st.text_input("이메일 주소", placeholder="example@email.com")
-            # 언어 선호도도 같이 받음
             pref_lang = st.selectbox("리포트 언어", ["Korean (한국어)", "English (영어)"])
             sub_btn = st.form_submit_button("무료 구독하기")
             
@@ -181,11 +194,7 @@ with col2:
                         
                         if result == "success":
                             st.balloons()
-                            st.success(f"환영합니다! '{sub_email}'님이 구독 리스트에 추가되었습니다.")
-                        elif result == "duplicate":
-                            st.info("이미 구독 중인 이메일입니다. 내일 아침을 기대해주세요!")
-                        elif result == "resubscribed":
-                            st.success("다시 돌아오셨군요! 구독이 재활성화되었습니다.")
+                            st.success(f"환영합니다! '{sub_email}'님이 구독 리스트에 등록되었습니다.")
                         else:
                             st.error(f"오류 발생: {result}")
 
