@@ -4,3 +4,8 @@ google-generativeai
 pypdf
 toml
 requests
+yfinance
+pandas
+pandas_ta
+numpy
+matplotlib
