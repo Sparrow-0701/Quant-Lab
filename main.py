@@ -115,13 +115,12 @@ def unsubscribe_user_from_db(email):
         
         current_date = now_kst.strftime("%Y-%m-%d")
 
-        # [수정] cancel_time 삭제
         supabase.table("subscribers").update({
             "is_active": False,
             "end_date": current_date
         }).eq("email", email).execute()
         
-        # 로그 기록 (여기에 정확한 시간이 찍힘)
+        # 로그 기록
         log_action(email, 'UNSUBSCRIBE')
         
         return "success"
@@ -133,7 +132,7 @@ def unsubscribe_user_from_db(email):
 # 3. UI 구성
 # ---------------------------------------------------------
 
-st.title("💸 AI 퀀트 투자 연구소")
+st.title("💸 AI 뉴스레터")
 st.divider()
 
 col1, col2 = st.columns([2, 1])
@@ -156,8 +155,7 @@ with col1:
             else:
                 summary_text = latest_report.get('summary_en', 'English summary not available.')
                 
-            st.info(f"📅 **Date:** {latest_report['created_at'][:10]} | **Source:** {latest_report['title']}")
-            st.markdown(summary_text)
+                st.markdown(summary_text)
             st.caption(f"🔗 [원본 리포트 보러가기]({latest_report['link']})")
             
         else:
