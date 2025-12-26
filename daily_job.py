@@ -119,55 +119,55 @@ def generate_synthesis(summaries_text, lang='ko'):
     
     if lang == 'en':
         prompt = f"""
-        Role: You are a Chief Market Strategist at a top-tier global investment bank.
-        Task: Synthesize the following individual report summaries into a professional "Global Market Daily Brief".
+        Role: You are the Chief Investment Officer (CIO) of a Global Macro Hedge Fund.
+        Task: Synthesize the provided individual report summaries into a strategic "Daily Market Intelligence Brief".
         
         [Input Summaries]:
         {summaries_text}
         
         [Constraints]:
-        1. Tone: Professional, analytical, and objective.
-        2. Content: Focus on actionable investment insights, macro trends, and specific sectors mentioned.
-        3. Structure: Use the Markdown format below strictly.
+        1. **Synthesis over Summary**: Do not just list the reports. Find common themes, contradictions, and unique signals across them.
+        2. **Quant Focus**: Highlight volatility, correlation changes, and liquidity conditions if mentioned.
+        3. **Tone**: Institutional, predictive, and risk-aware.
         
-        [Output Format]:
-        # 🌍 Global Market Synthesis ({today_kst})
+        [Output Format (Markdown)]:
+        # 🌍 Global Market Intelligence ({today_kst})
         
-        ## 🎯 Executive Summary
-        (One clear sentence summarizing the most important market signal today.)
+        ## 🔭 Macro View & Sentiment
+        (Synthesize the overall market direction: Risk-On vs. Risk-Off. Are the reports generally aligned or conflicting?)
         
-        ## 📈 Key Investment Trends
-        * (Trend 1): (Detail with specific sectors/assets)
-        * (Trend 2): (Detail with specific sectors/assets)
+        ## 🚀 Alpha Strategies (Sectors & Assets)
+        * **Consensus Trades**: (Where is everyone agreeing? e.g., "Long AI", "Short Bonds")
+        * **Contrarian/Niche Ideas**: (Unique insights found in specific reports)
         
-        ## ⚠️ Risk Factors
-        (Briefly mention potential risks like inflation, geopolitical issues, etc.)
+        ## ⚠️ Risk Radar (Tail Risks)
+        * (Specific macro risks, geopolitical tensions, or monetary policy shifts to watch)
         """
     else:
         prompt = f"""
-        역할: 당신은 글로벌 투자 은행의 수석 시장 전략가(Chief Market Strategist)입니다.
-        임무: 아래 제공된 개별 리포트 요약본들을 종합하여, 투자자들을 위한 전문적인 '글로벌 마켓 데일리 브리핑'을 작성하십시오.
+        역할: 당신은 글로벌 매크로 헤지펀드의 최고투자책임자(CIO)입니다.
+        임무: 아래 개별 리포트 요약들을 종합하여, 전략적인 '일일 시장 인텔리전스 브리핑'을 작성하십시오.
         
         [입력 데이터]:
         {summaries_text}
         
         [제약 사항]:
-        1. 어조: 전문적이고 분석적이며 객관적인 태도를 유지하십시오.
-        2. 내용: 단순한 사실 나열보다 '투자 인사이트', '유망 섹터', '구체적인 수치'에 집중하십시오.
-        3. 형식: 아래 마크다운 양식을 엄격히 따르십시오.
+        1. **단순 요약 금지**: 리포트를 나열하지 말고, 공통적인 테마나 상충되는 의견(Contradictions)을 찾아 '종합(Synthesis)'하십시오.
+        2. **퀀트 관점**: 변동성, 상관관계 변화, 유동성 조건 등이 있다면 강조하십시오.
+        3. **어조**: 기관 투자자용 보고서처럼 전문적이고 예측적인 어조를 사용하십시오.
         
-        [출력 양식]:
-        # 🌍 글로벌 마켓 종합 리포트 ({today_kst})
+        [출력 양식 (Markdown)]:
+        # 🌍 글로벌 마켓 인텔리전스 ({today_kst})
         
-        ## 🎯 핵심 요약 (Executive Summary)
-        (오늘 시장을 관통하는 가장 중요한 신호를 한 문장으로 요약)
+        ## 🔭 매크로 뷰 & 시장 센티먼트
+        (전반적인 시장 방향성 종합: Risk-On vs Risk-Off. 리포트 간의 의견이 일치하는지, 엇갈리는지 분석)
         
-        ## 📈 주요 투자 트렌드
-        * (트렌드 1): (관련 섹터나 자산군을 포함하여 구체적으로 설명)
-        * (트렌드 2): (관련 섹터나 자산군을 포함하여 구체적으로 설명)
+        ## 🚀 알파 전략 (유망 섹터 및 자산)
+        * **컨센서스 트레이드**: (다수의 리포트가 동의하는 투자처. 예: "AI 매수", "채권 매도")
+        * **틈새/역발상 아이디어**: (특정 리포트에서만 발견된 독창적인 인사이트)
         
-        ## ⚠️ 리스크 요인
-        (인플레이션, 지정학적 이슈 등 잠재적 위험 요소 언급)
+        ## ⚠️ 리스크 레이더 (Tail Risk)
+        * (구체적인 매크로 위험, 지정학적 긴장, 통화 정책 변화 등 주의해야 할 하방 요인)
         """
         
     try:
@@ -215,27 +215,38 @@ if __name__ == "__main__":
         
         if text:
             try:
-                # 한국어 요약
                 prompt_ko = f"""
-                당신은 시니어 퀀트 애널리스트입니다. 다음 금융 텍스트를 분석하여 투자자에게 가장 중요한 정보를 3가지 포인트로 요약하십시오.
+                당신은 글로벌 자산운용사의 시니어 퀀트 리서처(Senior Quant Researcher)입니다.
+                제공된 금융 리포트 텍스트를 분석하여, 포트폴리오 매니저(PM)가 즉시 의사결정에 활용할 수 있는 'Actionable Insight'를 도출하십시오.
+                
                 [텍스트]: {text[:15000]}
-                [요약 규칙]: 수치(%, $)와 구체적 종목/섹터명 포함. 한국어 작성.
-                [출력 형식]:
-                * **(핵심 주제)**: ...
-                * **(주목할 섹터)**: ...
-                * **(결론/제언)**: ...
+                
+                [분석 지침]:
+                1. 일반적인 내용보다는 구체적인 자산군(Asset Class), 섹터, 종목명, 그리고 수치(%, $, bps)에 집중하십시오.
+                2. 저자의 뷰가 Bullish(낙관), Bearish(비관), Neutral(중립) 중 어디에 가까운지 파악하십시오.
+                
+                [출력 형식 (Markdown)]:
+                * **💡 핵심 투자 논지 (Key Thesis)**: (리포트의 주장을 한 문장으로 강력하게 요약)
+                * **📊 자산 배분 아이디어**: (Long/Short 추천, 비중 확대/축소 섹터 구체적 명시)
+                * **🔢 주요 데이터/근거**: (주장을 뒷받침하는 핵심 지표, 목표 주가, 예상 성장률 등 수치 위주 작성)
                 """
                 res_ko = model.generate_content(prompt_ko)
                 
-                # 영어 요약
+                # [수정 2] 개별 리포트 요약 - 영어 (Professional Ver.)
                 prompt_en = f"""
-                You are a Senior Quantitative Analyst. Analyze the following financial text and summarize the most critical information for investors into 3 bullet points.
+                You are a Senior Buy-side Quant Researcher at a top-tier asset management firm.
+                Analyze the provided financial report to extract 'Actionable Insights' for Portfolio Managers.
+                
                 [Text]: {text[:15000]}
-                [Rules]: Include numbers (%, $) and specific tickers/sectors. Write in English.
-                [Output Format]:
-                * **(Key Theme)**: ...
-                * **(Sector Focus)**: ...
-                * **(Actionable Insight)**: ...
+                
+                [Analysis Guidelines]:
+                1. Focus strictly on specific Asset Classes, Sectors, Tickers, and quantitative metrics (%, $, bps).
+                2. Identify if the author's stance is Bullish, Bearish, or Neutral.
+                
+                [Output Format (Markdown)]:
+                * **💡 Key Thesis**: (Strong one-sentence summary of the core argument)
+                * **📊 Asset Allocation Strategy**: (Specific Long/Short ideas, Overweight/Underweight sectors)
+                * **🔢 Key Data & Evidence**: (Crucial metrics, price targets, growth forecasts supporting the thesis)
                 """
                 res_en = model.generate_content(prompt_en)
                 
