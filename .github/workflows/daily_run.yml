@@ -1,0 +1,37 @@
+name: QuantLab Daily Bot 🤖
+
+on:
+  schedule:
+    # UTC 23:00 = 한국 시간 08:00
+    - cron: '0 23 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-daily-job:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Daily Job
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        GOOGLE_SEARCH_API_KEY: ${{ secrets.GOOGLE_SEARCH_API_KEY }}
+        SEARCH_ENGINE_ID: ${{ secrets.SEARCH_ENGINE_ID }}
+        GMAIL_USER: ${{ secrets.GMAIL_USER }}
+        GMAIL_APP_PWD: ${{ secrets.GMAIL_APP_PWD }}
+      run: |
+        python daily_job.py

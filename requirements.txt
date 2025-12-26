@@ -1,11 +1,6 @@
 streamlit
-pandas
-numpy
-yfinance
-matplotlib
-requests
+supabase
 google-generativeai
 pypdf
-pandas_ta
-gspread>=6.0.0
-oauth2client
+toml
+requests
