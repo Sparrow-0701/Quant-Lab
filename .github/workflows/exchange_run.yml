@@ -1,0 +1,33 @@
+name: Exchange Rate Updater 💸
+
+on:
+  schedule:
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-rate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests toml supabase
+
+    - name: Run Exchange Job
+      env:
+        # DB 접속 정보
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        EXIM_KEY: ${{ secrets.EXIM_KEY }} 
+      run: |
+        python update_rates.py
