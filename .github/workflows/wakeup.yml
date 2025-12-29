@@ -1,0 +1,18 @@
+name: Wake Up Streamlit ⏰
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch: 
+
+jobs:
+  wake_up:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Poke Streamlit Apps
+        run: |
+          # 1. QuantLab
+          curl https://revoltac-quantlab.streamlit.app
+          
+          # 2. Portfolio
+          # curl https://revoltac-portfolio.streamlit.app
