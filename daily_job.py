@@ -118,17 +118,10 @@ def generate_synthesis(summaries_text, lang='ko'):
     today_kst = datetime.now(KST).strftime('%Y-%m-%d')
     
     if lang == 'en':
-<<<<<<< HEAD
         prompt = f"""
         Role: CIO of a Global Macro Hedge Fund.
         Task: Curate a "Daily Market Intelligence Dashboard" from the provided report summaries.
         Target Audience: Traders reading on mobile. Needs to be "At-a-Glance" readable.
-=======
-            prompt = f"""
-            Role: CIO of a Global Macro Hedge Fund.
-            Task: Curate a "Daily Market Intelligence Dashboard" from the provided report summaries.
-            Target Audience: Traders reading on mobile. Needs to be "At-a-Glance" readable.
->>>>>>> 9a5e737ee6777f77b16a1e2b752be0bc0ba0c496
 
         [Input Summaries]:
         {summaries_text}
