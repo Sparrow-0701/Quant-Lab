@@ -120,88 +120,106 @@ def generate_synthesis(summaries_text, lang='ko'):
     if lang == 'en':
         prompt = f"""
         Role: CIO of a Global Macro Hedge Fund.
-        Task: Curate a "Daily Market Intelligence Dashboard" from the provided report summaries.
-        Target Audience: Traders reading on mobile. Needs to be "At-a-Glance" readable.
+        Task: Create a comprehensive "Daily Market Intelligence Brief" based on the provided summaries.
+        Structure: The report must have two distinct parts: 
+                1. A "Mobile Dashboard" (Executive Summary & Top Picks) at the top.
+                2. A "Deep Dive Analysis" (Detailed Macro & Strategy) at the bottom.
 
         [Input Summaries]:
         {summaries_text}
 
         [Constraints]:
-        1. **Aggressive Curation**: Do not summarize everything. Pick the "Highest Conviction" calls from the inputs.
-        2. **Ticker Extraction**: You MUST extract specific tickers (e.g., $NVDA, $TSLA) mentioned in the reports and list them clearly.
-        3. **Visual Structure**: Use dividers, bold text for numbers, and emojis to create a "Dashboard" feel.
+        1. **Top Picks Verification**: For the 'Top Picks' table, ONLY include tickers that have specific reasoning or data support in the text. Cite the evidence briefly.
+        2. **Structure**: Use a horizontal rule (---) to clearly separate the Dashboard from the Deep Dive.
+        3. **Tone**: The Dashboard should be punchy and visual. The Deep Dive should be analytical and professional.
 
         [Output Format (Markdown)]:
-        # ☕ Market Briefing ({today_kst})
+        # ☕ Morning Market Brief ({today_kst})
 
-        ## 🚦 Market Sentiment Meter
-        (Create a visual text gauge based on overall tone)
-        Example: [🔴 Fear ---⚪ Neutral ---🟢 Greed]
-        * **Verdict**: (One word: e.g., "Bullish", "Cautious", "Panic")
-        * **Driver**: (1 sentence on why)
+        ## ⚡ Executive Dashboard (Mobile View)
+        
+        ### 🚦 Market Sentiment
+        [🔴 Fear -----⚪ Neutral -----🟢 Greed]
+        * **Verdict**: (Bullish/Bearish/Mixed)
+        * **Key Driver**: (1 sentence summary)
+
+        ### 🏆 Top High-Conviction Picks
+        (List the most strongly recommended assets. Verify evidence.)
+        | Ticker | Action | Logic | Evidence/Source |
+        | :--- | :--- | :--- | :--- |
+        | **$TICKER** | Buy/Sell | (Why?) | (e.g., "OPM +20%", "Analyst Upgrade") |
+        | **$TICKER** | Buy/Sell | (Why?) | (e.g., "RSI Oversold") |
+
+        ### 🦄 Today's Hidden Gem
+        * (The most unique/contrarian idea found in the reports)
 
         ---
+        
+        ## 🔍 Deep Dive Analysis (Professional View)
 
-        ## 🏆 Top High-Conviction Calls (Must Read)
-        (Aggregate the specific 'Long/Overweight' ideas from input reports)
-        | Ticker | Strategy | Key Rationale |
-        | :--- | :--- | :--- |
-        | **$TICKER** | Long/Short | (Short phrase, e.g., "Strong AI Demand") |
-        | **$TICKER** | Long/Short | (Short phrase) |
-        *(If no specific tickers, mention top sectors)*
+        ### 🔭 Macro View & Market Regime
+        (Synthesize the overall market direction. Risk-On vs Risk-Off. Are the reports generally aligned or conflicting? Explain the narrative.)
 
-        ---
+        ### 🚀 Strategic Alpha Opportunities
+        * **Consensus Trades**: (Where is the smart money flocking? e.g., "Long AI", "Short Bonds")
+        * **Sector Rotation**: (Which sectors are heating up or cooling down?)
+        * **Detailed Rationale**: (Expand on the logic behind the Top Picks mentioned above)
 
-        ## ⚡ 3-Minute Macro Digest
-        * **🌍 Global Theme**: (Dominant narrative)
-        * **⚠️ Risk Radar**: (Biggest threat today)
-        * **📊 Key Data**: (Most important number, e.g., "CPI 3.2%")
-
-        ## 🦄 The "Hidden Gem" Insight
-        * (A unique/contrarian idea found in the reports that others might miss)
+        ### ⚠️ Risk Radar (Tail Risks)
+        * (Specific macro risks, geopolitical tensions, or monetary policy shifts to watch)
+        * **Watch Levels**: (Key technical support/resistance levels if mentioned)
         """
     else:
         prompt = f"""
         역할: 글로벌 매크로 헤지펀드 CIO.
-        임무: 개별 리포트들을 종합하여, 핵심 종목과 전략이 한눈에 보이는 '모바일 마켓 대시보드'를 작성하십시오.
-        독자: 출근길 1분 안에 돈이 되는 정보를 찾으려는 트레이더.
+        임무: 제공된 리포트 요약본을 바탕으로 '일일 마켓 인텔리전스 브리핑'을 작성하십시오.
+        구조: 리포트는 두 부분으로 명확히 나뉩니다.
+            1. **상단**: 바쁜 출근길에 보는 '모바일 대시보드' (요약 및 종목 추천)
+            2. **하단**: 상세한 투자 논리를 담은 '심층 마켓 분석' (Deep Dive)
 
         [입력 요약본]:
         {summaries_text}
 
         [제약 사항]:
-        1. **철저한 큐레이션**: 모든 내용을 나열하지 마십시오. 가장 확신(Conviction)이 높은 투자 아이디어만 선별하십시오.
-        2. **티커($) 필수 노출**: 입력 데이터에 있는 구체적인 종목명(예: $NVDA, $SOXL)을 반드시 추출하여 'Top Picks' 섹션에 배치하십시오.
-        3. **시각적 구조**: 줄글 대신 표(Table)나 짧은 리스트를 사용하여 가독성을 극대화하십시오.
+        1. **Top Picks 검증(Evidence Check)**: 'Top Picks' 테이블에는 단순히 언급된 종목이 아니라, 확실한 근거(실적, 수급, 모멘텀 등)가 있는 종목만 포함하십시오. '근거'란에 그 이유를 명시하십시오.
+        2. **구조 분리**: 대시보드와 심층 분석 사이에는 반드시 구분선(---)을 넣어 시각적으로 분리하십시오.
+        3. **틈새 아이디어**: 남들이 보지 못한 역발상(Contrarian) 아이디어를 대시보드에 꼭 포함하십시오.
 
         [출력 양식 (Markdown)]:
         # ☕ 모닝 마켓 브리핑 ({today_kst})
 
-        ## 🚦 시장 심리 미터기 (Market Meter)
-        (전반적인 리포트 분위기를 텍스트 게이지로 표현)
-        예시: [🔴 공포(Fear) -----⚪ 중립 -----🟢 탐욕(Greed)]
-        * **오늘의 한마디**: (예: "저가 매수 기회", "소나기는 피하자")
-        * **핵심 이유**: (1문장 요약)
+        ## ⚡ 3분 요약 대시보드 (Mobile View)
+
+        ### 🚦 시장 심리 미터기
+        [🔴 공포 -----⚪ 중립 -----🟢 탐욕]
+        * **한줄 평**: (예: 저가 매수세 유입 중)
+        * **핵심 동인**: (시장을 움직이는 메인 재료 1가지)
+
+        ### 🏆 오늘의 Top Picks 
+        | 종목($) | 포지션 | 핵심 논거 | 근거/데이터 체크 |
+        | :--- | :--- | :--- | :--- |
+        | **$티커** | 매수/매도 | (예: AI 수요 지속) | (예: "영업이익률 50% 상회") |
+        | **$티커** | 매수/매도 | (예: 낙폭 과대) | (예: "RSI 30 하회") |
+
+        ### 🦄 틈새/역발상 아이디어 
+        * (대중의 생각과 다르거나, 놓치기 쉬운 독특한 투자 기회 1가지)
 
         ---
+        
+        ## 🔍 심층 마켓 분석
 
-        ## 🏆 오늘의 Top Picks (주목할 종목)
-        (입력된 리포트들의 'Long/Overweight' 의견을 종합하여 테이블로 정리)
-        | 종목($) | 포지션 | 핵심 논거 (짧게) |
-        | :--- | :--- | :--- |
-        | **$티커** | 매수/매도 | (예: AI 수요 폭발 지속) |
-        | **$티커** | 매수/매도 | (예: 금리 인하 수혜) |
-        *(특정 종목이 없다면 유망 섹터 기재)*
+        ### 🔭 매크로 뷰 & 시장 국면
+        (전반적인 시장의 큰 흐름을 서술하십시오. Risk-On인지 Off인지, 리포트들 간에 뷰가 일치하는지 엇갈리는지 '서사(Narrative)'를 중심으로 자세히 분석하십시오.)
 
-        ---
+        ### 🚀 세부 알파 전략 
+        * **컨센서스 트레이드**: (다수의 리포트가 동의하는 메가 트렌드. 예: "빅테크 쏠림", "채권 금리 하락 베팅")
+        * **섹터 로테이션**: (자금이 어디서 빠져나가 어디로 이동하고 있는지)
+        * **Top Picks 상세 분석**: (상단 표에서 언급한 종목들의 구체적인 투자 포인트 심화 설명)
 
-        ## ⚡ 3분 매크로 요약
-        * **🌍 핵심 테마**: (시장을 움직이는 메인 이슈)
-        * **⚠️ 리스크 레이더**: (오늘 조심해야 할 하방 요인)
-        * **📊 데이터 체크**: (주목해야 할 지표/수치)
-
-        ## 🦄 틈새/역발상 아이디어 (Hidden Gem)
-        * (남들이 보지 못한 독특한 인사이트 1가지)
+        ### ⚠️ 리스크 레이더
+        * **매크로 리스크**: (금리, 환율, 유가 등 거시경제 위협 요인)
+        * **지정학/이벤트**: (선거, 전쟁, 실적 발표 등)
+        * **주요 레벨**: (코스피 2500선, 나스닥 15000선 등 지지/저항 라인)
         """
         
     try:
