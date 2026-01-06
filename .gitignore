@@ -1,0 +1,32 @@
+# 1. Python 
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 2. 가상환경
+venv/
+env/
+.venv/
+
+# 3. 데이터 파일
+*.csv
+*.xlsx
+*.xls
+*.json
+*.parquet
+/data/
+
+# 4. 보안 및 API 키
+.env
+api_key.txt
+secrets.json
+.streamlit/secrets.toml
+
+# 5. IDE 및 OS 설정 파일
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 6. Jupyter Notebook 체크포인트
+.ipynb_checkpoints/
