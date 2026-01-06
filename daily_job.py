@@ -114,60 +114,63 @@ def extract_text_fast(url):
 def generate_synthesis(summaries_text, lang='ko'):
     model = genai.GenerativeModel('gemini-2.5-flash') 
     
-    # [수정] 날짜를 KST 기준으로 생성
     today_kst = datetime.now(KST).strftime('%Y-%m-%d')
     
     if lang == 'en':
         prompt = f"""
         Role: CIO of a Global Macro Hedge Fund.
-        Task: Create a comprehensive "Daily Market Intelligence Brief" based on the provided summaries.
-        Structure: The report must have two distinct parts: 
-                1. A "Mobile Dashboard" (Executive Summary & Top Picks) at the top.
-                2. A "Deep Dive Analysis" (Detailed Macro & Strategy) at the bottom.
+        Task: Create a "Daily Market Intelligence Brief" based on the provided summaries.
+        Structure: Split into two parts: 
+                1. **"Mobile Dashboard"** (Top section: Executive Summary & Picks)
+                2. **"Deep Dive Analysis"** (Bottom section: Detailed Macro & Strategy)
 
         [Input Summaries]:
         {summaries_text}
 
         [Constraints]:
-        1. **Top Picks Verification**: For the 'Top Picks' table, ONLY include tickers that have specific reasoning or data support in the text. Cite the evidence briefly.
-        2. **Structure**: Use a horizontal rule (---) to clearly separate the Dashboard from the Deep Dive.
-        3. **Tone**: The Dashboard should be punchy and visual. The Deep Dive should be analytical and professional.
+        1. **STREAMLIT FORMATTING (CRITICAL)**: 
+        - When writing Tickers, **ALWAYS use a backslash before the dollar sign** to prevent LaTeX rendering errors. 
+        - Correct: `\$NVDA`, `\$TSLA`, `\$MSCI_EM`
+        - Incorrect: `$NVDA`, `$MSCI_EM` (Do not use this!)
+        2. **Evidence-Based Picks**: In the 'Top Picks' table, the "Evidence/Data" column is mandatory. You must cite specific numbers (e.g., "Yields down 10bps", "EPS beat by 5%") from the text.
+        3. **Visual Indicator**: For the Market Sentiment Meter, clearly mark the CURRENT status with an arrow (📍) or bold text. Do not just list the range.
 
         [Output Format (Markdown)]:
         # ☕ Morning Market Brief ({today_kst})
 
         ## ⚡ Executive Dashboard (Mobile View)
         
-        ### 🚦 Market Sentiment
-        [🔴 Fear -----⚪ Neutral -----🟢 Greed]
-        * **Verdict**: (Bullish/Bearish/Mixed)
-        * **Key Driver**: (1 sentence summary)
+        ### 🚦 Market Sentiment Meter
+        (Select the current sentiment and mark it clearly with '📍')
+        Example: [⚫ Fear ----- 📍 **Neutral** ----- ⚫ Greed]
+        * **Verdict**: (One word: e.g., Bullish / Caution / Panic)
+        * **Key Driver**: (1 sentence summary of the main market mover)
 
         ### 🏆 Top High-Conviction Picks
-        (List the most strongly recommended assets. Verify evidence.)
-        | Ticker | Action | Logic | Evidence/Source |
+        (List the best ideas. MUST escape dollar signs like `\$TICKER`)
+        | Ticker | Action | Core Logic | Evidence/Data Check |
         | :--- | :--- | :--- | :--- |
-        | **$TICKER** | Buy/Sell | (Why?) | (e.g., "OPM +20%", "Analyst Upgrade") |
-        | **$TICKER** | Buy/Sell | (Why?) | (e.g., "RSI Oversold") |
+        | **\$TICKER** | Buy/Sell | (Short rationale) | (Specific data from report) |
+        | **\$TICKER** | Buy/Sell | (Short rationale) | (Specific data from report) |
 
         ### 🦄 Today's Hidden Gem
-        * (The most unique/contrarian idea found in the reports)
+        * (A unique or contrarian idea found in the reports that others might miss)
 
         ---
         
         ## 🔍 Deep Dive Analysis (Professional View)
 
         ### 🔭 Macro View & Market Regime
-        (Synthesize the overall market direction. Risk-On vs Risk-Off. Are the reports generally aligned or conflicting? Explain the narrative.)
+        (Synthesize the overall market direction. Risk-On vs Risk-Off? Explain the dominant narrative and any conflicts between asset classes.)
 
         ### 🚀 Strategic Alpha Opportunities
-        * **Consensus Trades**: (Where is the smart money flocking? e.g., "Long AI", "Short Bonds")
-        * **Sector Rotation**: (Which sectors are heating up or cooling down?)
-        * **Detailed Rationale**: (Expand on the logic behind the Top Picks mentioned above)
+        * **Consensus Trades**: (Where is the crowd going? e.g., "Long Big Tech", "Short Yen")
+        * **Sector Rotation**: (Which sectors are heating up? e.g., Energy, Biotech)
+        * **Rationale Deep Dive**: (Expand on the logic behind the Top Picks with more context)
 
         ### ⚠️ Risk Radar (Tail Risks)
-        * (Specific macro risks, geopolitical tensions, or monetary policy shifts to watch)
-        * **Watch Levels**: (Key technical support/resistance levels if mentioned)
+        * **Macro Threats**: (Interest rates, Inflation, Geopolitics)
+        * **Key Technical Levels**: (Support/Resistance levels to watch)
         """
     else:
         prompt = f"""
@@ -184,6 +187,7 @@ def generate_synthesis(summaries_text, lang='ko'):
         1. **Top Picks 검증(Evidence Check)**: 'Top Picks' 테이블에는 단순히 언급된 종목이 아니라, 확실한 근거(실적, 수급, 모멘텀 등)가 있는 종목만 포함하십시오. '근거'란에 그 이유를 명시하십시오.
         2. **구조 분리**: 대시보드와 심층 분석 사이에는 반드시 구분선(---)을 넣어 시각적으로 분리하십시오.
         3. **틈새 아이디어**: 남들이 보지 못한 역발상(Contrarian) 아이디어를 대시보드에 꼭 포함하십시오.
+        4. 종목명에 달러 기호($)를 사용할 때는 반드시 **이스케이프 문자(\$)**를 사용하십시오. (예: $NVDA대신$NVDA 로 작성). 특히 언더바( \_\)가 포함된 티커는 수식으로 깨지기 쉬우니 주의하십시오.
 
         [출력 양식 (Markdown)]:
         # ☕ 모닝 마켓 브리핑 ({today_kst})
@@ -191,7 +195,8 @@ def generate_synthesis(summaries_text, lang='ko'):
         ## ⚡ 3분 요약 대시보드 (Mobile View)
 
         ### 🚦 시장 심리 미터기
-        [🔴 공포 -----⚪ 중립 -----🟢 탐욕]
+        시장 심리 표시: 현재 시장 분위기에 해당하는 이모지만 남기고 나머지는 흐리게 처리하거나, 화살표(📍)로 위치를 표시하십시오. 예시 1: ⚫ 공포 -----📍 중립 -----⚫ 탐욕 예시 2: (현재 상태가 '탐욕'일 경우) : 🟢 탐욕 (Greed) 구간 진입
+        
         * **한줄 평**: (예: 저가 매수세 유입 중)
         * **핵심 동인**: (시장을 움직이는 메인 재료 1가지)
 
