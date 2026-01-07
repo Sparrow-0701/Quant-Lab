@@ -1,10 +1,16 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import pandas_ta as ta
 import datetime as dt
 import matplotlib.pyplot as plt
-import numpy as np
+import os,sys
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
+from sidebar import render_sidebar
+render_sidebar()
 
 # -----------------------------------------------------------
 # 함수 정의 (매물대 및 로직)
