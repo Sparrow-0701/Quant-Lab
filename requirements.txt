@@ -9,3 +9,4 @@ pandas
 pandas_ta
 numpy
 matplotlib
+ta
