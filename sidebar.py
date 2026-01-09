@@ -66,7 +66,7 @@ def render_sidebar():
         st.markdown("### 🧭 Menu")
         
         # 각 파일로 이동하는 링크
-        st.page_link("./app.py", label="홈 (Dashboard)", icon="🏠")
+        st.page_link("./main.py", label="홈 (Dashboard)", icon="🏠")
         st.page_link("./pages/MonteCarlo.py", label="시뮬레이션 (Simulations)", icon="🎲")
         st.page_link("./pages/StockScoring.py", label="종목 스코어링 (Scoring)", icon="💯")
 
