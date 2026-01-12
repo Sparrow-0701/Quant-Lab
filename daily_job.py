@@ -116,7 +116,6 @@ def generate_synthesis(summaries_text, lang='ko'):
     
     today_kst = datetime.now(KST).strftime('%Y-%m-%d')
     
-    # [수정됨] rf""" (Raw f-string) 사용 및 티커 환각 방지 제약사항 추가
     if lang == 'en':
         prompt = rf"""
         Role: CIO of a Global Macro Hedge Fund.
@@ -150,6 +149,7 @@ def generate_synthesis(summaries_text, lang='ko'):
         
         * **One-Liner**: (e.g., Dip buying inflows detected)
         * **Key Driver**: (One main material moving the market)
+        * **Reports Analyzed**: (List of Report Titles and Dates used in this analysis)
 
         ### 🏆 Today's Top Picks 
         | Ticker (\$) | Position | Core Rationale | Evidence/Data Check |
@@ -178,7 +178,6 @@ def generate_synthesis(summaries_text, lang='ko'):
         * **Key Levels**: (Support/Resistance lines like S&P 500 at 5000, etc.)
         """
     else:
-        # [수정됨] rf""" 사용 및 한국어용 티커 환각 방지 제약사항 추가
         prompt = rf"""
         역할: 글로벌 매크로 헤지펀드 CIO.
         임무: 제공된 리포트 요약본을 바탕으로 '일일 마켓 인텔리전스 브리핑'을 작성하십시오.
@@ -208,6 +207,7 @@ def generate_synthesis(summaries_text, lang='ko'):
         
         * **한줄 평**: (예: 저가 매수세 유입 중)
         * **핵심 동인**: (시장을 움직이는 메인 재료 1가지)
+        * **분석 리포트 목록**: (본 분석에 사용된 리포트 제목과 작성일 나열)
 
         ### 🏆 오늘의 Top Picks 
         | 종목($) | 포지션 | 핵심 논거 | 근거/데이터 체크 |
@@ -302,6 +302,9 @@ if __name__ == "__main__":
                 #### 🔢 핵심 데이터 (Key Numbers)
                 * (중요 수치 1)
                 * (중요 수치 2)
+                
+                * 리포트의 제목
+                * 리포트의 작성일, 혹은 게시일
                 """
                 
                 res_ko = model.generate_content(prompt_ko)
@@ -325,6 +328,8 @@ if __name__ == "__main__":
                 #### 🔢 Key Numbers
                 * (Critical Metric 1)
                 * (Critical Metric 2)
+                
+                * When this report is written, or uploaded
                 """
                 res_en = model.generate_content(prompt_en)
                 
